@@ -1,0 +1,117 @@
+syntax = "proto2";
+
+package ditree;
+
+// Next: 18
+message VertexParameter {
+  optional int32 index = 1;
+  optional int32 table_index = 17;
+  optional bool root = 2 [default = false];
+  repeated int32 child_indexes = 3;
+  optional int32 child_table_idx = 4;
+  repeated float mean = 5;
+  optional float kappa = 6;
+  optional float tau_0 = 7;
+  optional float tau_1 = 8;
+  optional float sigma_0 = 9;
+  optional float sigma_1 = 10;
+  repeated float tau_0_history = 11;
+  repeated float tau_1_history = 12;
+  repeated float sigma_0_history = 13;
+  repeated float sigma_1_history = 14;
+  optional float n = 15;
+  repeated float s = 16;
+}
+
+// Next: 10
+message TreeParameter {
+  optional float alpha = 1;
+  optional float gamma = 2;
+  optional float beta = 3;
+  optional float kappa_0 = 4;
+  optional float kappa_1 = 5;
+  optional float kappa_2 = 6;
+  repeated VertexParameter vertexes = 7;
+  repeated LayerParameter layers = 9;
+  // The current "state" of the tree, including the phase
+  optional TreeState state = 8;
+}
+
+message LayerParameter {
+  // root has depth 1
+  optional int32 depth = 1;
+  optional int32 num_children_per_vertex = 2;
+  optional int32 max_num_child_tables = 3 [default = 1];
+}
+
+// A message that stores the solver snapshots
+message TreeState {
+  optional Phase phase = 1 [default = kVIAfterSplit];
+}
+
+enum Phase {
+  kInit = 0;
+  kSplit = 1;
+  kMerge = 2;
+  kVIAfterSplit = 3;
+  kVIAfterMerge = 4;
+}
+
+// Next: 18
+message SolverParameter {
+  // The number of iterations for test.
+  optional int32 test_iter = 1;
+  // The number of iterations between two testing phases.
+  optional int32 test_interval = 2;
+  // If true, run an initial test pass before the first iteration,
+  // ensuring memory availability and printing the starting value of the loss.
+  optional bool test_initialization = 3 [default = true];
+  // the number of iterations between displaying info. If display = 0, no info
+  // will be displayed.
+  optional int32 display = 5;
+  optional int32 max_epoch = 6;
+  optional int32 snapshot = 7 [default = 0]; // The snapshot interval
+  optional bool snapshot_after_train = 8 [default = true]; 
+  optional string snapshot_prefix = 9; // The prefix for the snapshot.
+  // Split moves
+  optional int32 split_epoch_interval = 14;
+  optional int32 split_start_epoch = 16;
+  optional int32 split_sample_start_iter = 10; // When to start sample
+  optional float split_target_data_threshold = 11;
+  optional int32 split_max_target_data_size = 12;
+  // Merge moves
+  optional int32 merge_epoch_interval = 15;
+  optional int32 merge_start_epoch = 17;
+  optional int32 merge_iter = 13; // When to merge, < split_sample_start_iter
+}
+
+// A message that stores the solver snapshots
+message SolverState {
+  optional int32 epoch = 1;
+  optional int32 iter = 2; // The current iteration
+  optional string learned_ditree = 3; // The file that stores the learned ditree.
+}
+
+
+//===========================
+// Dataset
+//===========================
+message DatasetParameter {
+  repeated DataBatchParameter data_batches = 1;
+}
+message DataBatchParameter {
+  // data
+  optional int32 size = 1;
+  optional int32 data_idx_begin = 2;
+  // sufficient statistics
+  repeated float n = 3;
+  repeated DataBatchVertexWordWeights s = 4;
+}
+message DataBatchVertexWordWeights {
+  required int32 vertex_index = 1;
+  // the lengths of word_index and weight should be equal
+  repeated int32 word_index = 2;
+  repeated float weight = 3;
+}
+
+
